@@ -26,15 +26,26 @@ var consumidor = new EventingBasicConsumer(channel);
 //Recebe a mensagem da fila, converte para string e imprime no console
 consumidor.Received += (model, ea) =>
 {
-    var corpo = ea.Body.ToArray();
-    var mensagem = Encoding.UTF8.GetString(corpo);
+    try
+    {
+        var corpo = ea.Body.ToArray();
+        var mensagem = Encoding.UTF8.GetString(corpo);
 
-    Console.WriteLine($" [x] Recebido: {mensagem}");
+        Console.WriteLine($" [x] Recebido: {mensagem}");
+
+        //throw new Exception("Erro de negócio");
+
+        channel.BasicAck(ea.DeliveryTag, false);
+    }
+    catch (Exception ex)
+    {
+        channel.BasicNack(ea.DeliveryTag, false, true);
+    }
 };
 
 //Indicamos o consumo da mensagem
 channel.BasicConsume(queue: "filaTeste",
-                     autoAck: true,
+                     autoAck: false,
                      consumer: consumidor);
 
 Console.WriteLine("Aperte [ENTER] para sair");
